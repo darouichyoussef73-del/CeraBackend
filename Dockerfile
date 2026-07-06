@@ -1,18 +1,19 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    libzip-dev unzip git curl \
-    && docker-php-ext-install pdo pdo_mysql zip
+    git curl unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /app
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies safely
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 RUN chmod -R 775 storage bootstrap/cache
 
